@@ -36,7 +36,7 @@ DATE=`date +%d`
 # backup files will be transferred to.
 # for sftp a public key can be used, see:
 # http://wiki.hetzner.de/index.php/Backup
-#BPASSWORD='yourpass'
+
 
 # directories to backup (use . for /)
 #BDIRS="etc home srv ."
@@ -99,17 +99,21 @@ do
 
   # first remove everything older than 2 months
   if [ $DIR = '.' ]; then
-   CMD="duplicity remove-older-than 2M -v5 --force $BAC/$BPREFIX-system >> $LOGDIR/system.log"
+   CMD="duplicity remove-older-than 2M -v5 --force $BAC/$BPREFIX-system 
+   # >> $LOGDIR/system.log"
   else
-   CMD="duplicity remove-older-than 2M -v5 --force $BAC/$BPREFIX-$DIR >> $LOGDIR/$DIR.log"
+   CMD="duplicity remove-older-than 2M -v5 --force $BAC/$BPREFIX-$DIR 
+   # >> $LOGDIR/$DIR.log"
   fi
   eval $CMD
 
   # do a backup
   if [ $DIR = '.' ]; then
-    CMD="duplicity --allow-source-mismatch $TYPE $VOLSIZE -v5 $GPGOPT $EXCLUDE /bak/ $BAC/$BPREFIX-system >> $LOGDIR/system.log"
+    CMD="duplicity --allow-source-mismatch $TYPE $VOLSIZE -v5 $GPGOPT $EXCLUDE /bak/ $BAC/$BPREFIX-system 
+    # >> $LOGDIR/system.log"
   else
-    CMD="duplicity --allow-source-mismatch $TYPE $VOLSIZE -v5 $GPGOPT $EXCLUDE /bak/$DIR $BAC/$BPREFIX-$DIR >> $LOGDIR/$DIR.log"
+    CMD="duplicity --allow-source-mismatch $TYPE $VOLSIZE -v5 $GPGOPT $EXCLUDE /bak/$DIR $BAC/$BPREFIX-$DIR
+    # >> $LOGDIR/$DIR.log"
   fi
   eval  $CMD
 
@@ -118,6 +122,6 @@ done
 # Check the manpage for all available options for Duplicity.
 # Unsetting the confidential variables
 unset PASSPHRASE
-unset FTP_PASSWORD
+unset GPG_PASSPHRASE
 
 exit 0
