@@ -95,7 +95,11 @@ case ${1} in
     #appBackup
     ;;
   restore)
-    appRestore
+    echo "Restore..."
+    echo $@
+    shift 1
+    exec /usr/local/bin/restore.sh "$@"
+    #appRestore
     ;;
   help)
     appHelp
