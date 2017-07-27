@@ -3,15 +3,6 @@
 # Simple script for restoring backups with Duplicity.
 
 
-# Set protocol (use scp for sftp and ftp for FTP, see manpage for more)
-
-
-if [ $BPASSWORD ]; then
- BAC="$BPROTO://$BUSER:$BPASSWORD@$BHOST"
-else
- BAC="$BPROTO://$BUSER@$BHOST"
-fi
-
 
 if [ "$BHOST" != '' ]; then
   BHOST="$BHOST"
@@ -34,7 +25,6 @@ fi
 #LOGDIR='/var/log/duplicity'
 
 TARGET='/bak/restore/'
-
 
 if [ -n "$0" ]; then
    RESTOREDIR=$TARGET$1
@@ -67,12 +57,15 @@ if [ $ALGO ]; then
  GPGOPT="--gpg-options '--pinentry-mode loopback --cipher-algo $ALGO'"
 fi
 
+
 if [ $BPASSWORD ]; then
- BAC="$BPROTO://$BUSER:$BPASSWORD@$BHOST"
+ FTP_PASSWORD=$BPASSWORD
+ export FTP_PASSWORD
+ BAC="$BPROTO://$BUSER@$BHOST"
+ #BAC="$BPROTO://$BUSER:$BPASSWORD@$BHOST"
 else
  BAC="$BPROTO://$BUSER@$BHOST"
 fi
-
 
 
 for DIR in $BDIRS
@@ -91,5 +84,6 @@ done
 # Unsetting the confidential variables
 unset PASSPHRASE
 unset GPG_PASSPHRASE
+unset FTP_PASSWORD
 
 exit 0

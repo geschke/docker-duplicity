@@ -65,7 +65,10 @@ if [ $ALGO ]; then
 fi
 
 if [ $BPASSWORD ]; then
- BAC="$BPROTO://$BUSER:$BPASSWORD@$BHOST"
+ FTP_PASSWORD=$BPASSWORD
+ export FTP_PASSWORD
+ BAC="$BPROTO://$BUSER@$BHOST"
+ #BAC="$BPROTO://$BUSER:$BPASSWORD@$BHOST"
 else
  BAC="$BPROTO://$BUSER@$BHOST"
 fi
@@ -123,5 +126,6 @@ done
 # Unsetting the confidential variables
 unset PASSPHRASE
 unset GPG_PASSPHRASE
+unset FTP_PASSWORD
 
 exit 0
