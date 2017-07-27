@@ -14,11 +14,6 @@ RUN chmod a+x /usr/local/bin/*.sh
 COPY entrypoint.sh /sbin/entrypoint.sh
 RUN chmod 755 /sbin/entrypoint.sh
 
-# Set the ENTRYPOINT
-#ENTRYPOINT [ "/usr/local/bin/duplicity" ]
 ENTRYPOINT ["/sbin/entrypoint.sh"]
 CMD ["help"]
 
-#CMD []
-
-#CMD ["/bin/bash"]

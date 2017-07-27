@@ -1,4 +1,4 @@
-# geschke/docker-duplicity
+# geschke/duplicity
 
 This is a docker image to create backups and do restore with the **[duplicity](http://duplicity.nongnu.org/)** backup tool and a minimal backup shell script.
 
@@ -8,25 +8,27 @@ To download the container run
 
     docker pull geschke/duplicity
 
-It is a general-purpose Duplicity image with simple backup and restore scripts to handle the main tasks. It is based on the "[Backup Script for Duplicity](https://wiki.hetzner.de/index.php/Duplicity_Script/en)", published as part of the Hetzner DokuWiki. 
+It is a general-purpose Duplicity image with simple backup and restore scripts to handle the main tasks. It is based on the "[Backup Script for Duplicity](https://wiki.hetzner.de/index.php/Duplicity_Script/en)", published as part of the Hetzner DokuWiki.
 
 ## Concepts
 
-To use this image, it is important to understand the basic concepts of a Docker container. Per default, the applications inside the container have only access to the internal filesystem. 
-To access the directories and files you want to backup, they have to be mounted as volumes into the container. 
+To use this image, it is important to understand the basic concepts of a Docker container. Per default, the applications inside the container have only access to the internal filesystem.
+To access the directories and files you want to backup, they have to be mounted as volumes into the container.
 
 Example:
 
     --volume /home:/bak/home
 
-This option mountes the `/home` folder of the host into the container and makes it accessible as the folder `/bak/home`. 
+This option mountes the `/home` folder of the host into the container and makes it accessible as the folder `/bak/home`.
+
 *Important*: The prefix `/bak` is fixed in the backup and restore scripts! You can mount as many folders as you like, but all of them have to build a structure in `/bak/`.
 
 
-## Standard tasks 
+## Standard tasks
 
 
-### Backup 
+
+### Backup
 
 To create a backup, the image comes with a simple and small shell script with some predefined assumptions. A typical task looks like this:
 
@@ -40,7 +42,7 @@ To create a backup, the image comes with a simple and small shell script with so
     -e "BPREFIX=hostname_or_another_prefix" \
     --volume /etc:/bak/etc \
     --volume /home:/bak/home \
-    duplicity backup
+    geschke/duplicity backup
 
 The script relies on some environment variables. If you start this container, the existence of the environment variables is checked, but you are responsible to fill them with senseful content.
 
@@ -54,6 +56,23 @@ The script relies on some environment variables. If you start this container, th
 | `BDIRS` | The directories in the mounted volumes to be backed up. Use the names of the volumes in the container, but without the prefix `/bak`. In the command above the folders `/bak/home` and `/bak/etc` will be backed up, so you have to use `etc home` here. The order of the names is not important. |
 | `BPREFIX` | Use this to set a prefix for the backup files. Usually this could be the hostname of the server to be backed up. |
 
+The script runs with the option to remove backups when they are older than 2 months.
+
+You can do full backups by submitting the parameter *"full"*. Full backups are automatically created on the 1st day of each month. The *first* run has to be as *full* backup, so that the incremental backups could be built.
+
+Example of full backup:
+
+  docker run -it --rm --name dup \
+    -e "GPG_PASSPHRASE=USE_A_GOOD_PASSPHRASE_HERE" \
+    -e "BPROTO=ftp" \
+    -e "BUSER=backup_user" \
+    -e "BHOST=ftp.backup.host.example.com" \
+    -e "BPASSWORD=backup_host_password" \
+    -e "BDIRS=etc home" \
+    -e "BPREFIX=hostname_or_another_prefix" \
+    --volume /etc:/bak/etc \
+    --volume /home:/bak/home \
+    geschke/duplicity backup full
 
 
 ### Restore
@@ -70,28 +89,26 @@ To restore a backup, run the `restore` command:
     -e "BDIRS=etc home" \
     -e "BPREFIX=hostname_or_another_prefix" \
     --volume /srv/restored:/bak/restore \
-    duplicity restore <folder>
+    geschke/duplicity restore <folder>
 
-The environment variables are the same as in the backup step. 
+The environment variables are the same as in the backup step.
 
-In this example the restored folders `etc` and `home` will be placed into the folder `/srv/restored` on the host. 
+In this example the restored folders `etc` and `home` will be placed into the folder `/srv/restored` on the host.
 If you submit the optional *folder* parameter, the name of the folder will be concatenated to the dedfault restore folder name, so the files are stored into `/bak/restore/<folder>`.
 
 
 
 ### Run any (Duplicity) command
 
-I cannot guarantee that the scripts do fit all your needs. Furthermore, they are not tested under all circumstances and with all protocols which does Duplicity support. 
-If you don't want to use the predefined tasks, then you have to dive deeper in the manual pages of Duplicity. There are plenty of options and tasks. To bypass the configuration variables checks, please add the environment variable `-e BCHECKS=false` to the Docker run command:
+I cannot guarantee that the scripts do fit all your needs. Furthermore, they are not tested under all circumstances and with all protocols which does Duplicity support.
+If you don't want to use the predefined tasks, then you have to dive deeper in the manual pages of Duplicity. There are plenty of options and tasks. To bypass the configuration variables checks, please add the environment variable `-e BCHECKS=false` to the Docker run command. The following example runs duplicity with `--help` to see the available options:
 
-    docker run -it --rm --name duprun -e "BCHECKS=false" --volume /etc:/bak/etc --volume /home:/bak/home duplicity duplicity --help
+    docker run -it --rm --name duprun -e "BCHECKS=false" \
+    --volume /etc:/bak/etc \
+    --volume /home:/bak/home \
+    geschke/duplicity duplicity --help
 
-This command runs *duplicity* with *--help* as parameter, mounts the folders `/etc/` into `/bak/etc/` and `/home/` into `/bak/home/` and don't check more of the environment variables. 
-
-
-
-
-## More Info
+This command runs *duplicity* with *--help* as parameter, mounts the folders `/etc/` into `/bak/etc/` and `/home/` into `/bak/home/` and don't check more of the environment variables.
 
 
 

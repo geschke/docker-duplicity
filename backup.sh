@@ -9,18 +9,6 @@
 # USAGE: backup.sh [full]
 #
 
-echo "BPREFIX TEST:"
-echo $BPREFIX
-
-echo $BUSER
-echo $BHOST
-echo $BPASSWORD
-echo $GPG_PASSPHRASE
-echo "All:"
-echo $@
-echo $0
-echo $1
-
 
 # get day of the month
 DATE=`date +%d`
