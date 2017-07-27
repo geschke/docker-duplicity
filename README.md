@@ -62,7 +62,7 @@ You can do full backups by submitting the parameter *"full"*. Full backups are a
 
 Example of full backup:
 
-  docker run -it --rm --name dup \
+    docker run -it --rm --name dup \
     -e "GPG_PASSPHRASE=USE_A_GOOD_PASSPHRASE_HERE" \
     -e "BPROTO=ftp" \
     -e "BUSER=backup_user" \
