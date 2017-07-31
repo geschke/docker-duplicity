@@ -49,7 +49,7 @@ The script relies on some environment variables. If you start this container, th
 | Parameter | Description |
 |-----------|-------------|
 | `GPG_PASSPHRASE` | This is the GPG passphrase to encrypt the backup files. |
-| `BPROTO` | The protocol scheme of the backup space server. Use `ftp` for FTP, `scp` for sftp, have a look at the manpage of Duplicity for more info. |
+| `BPROTO` | The protocol scheme of the backup space server. Use `ftp` for FTP, `sftp` for sftp, have a look at the manpage of Duplicity for more info. |
 | `BUSER` | The username of the backup account |
 | `BHOST` | The hostname of the backup account |
 | `BPASSWORD` | The password of the backup space |
@@ -110,6 +110,35 @@ If you don't want to use the predefined tasks, then you have to dive deeper in t
 
 This command runs *duplicity* with *--help* as parameter, mounts the folders `/etc/` into `/bak/etc/` and `/home/` into `/bak/home/` and don't check more of the environment variables.
 
+
+## SSH (SCP and SFTP) issues
+
+By connecting a host with `scp` or `sftp` procotol, Duplicity will ask to accept the public key. It is recommended to receive the public key by a secure channel like directly from the admin. Nevertheless, if you accept the request and answer with "yes" to store the public key, the Docker container is built to be "ephemeral", so you can stop and destroy the container or run a new container with minimal setup. That means, that storing the server's public key into the container is a bad idea. 
+
+To solve this, it is possible to mount a pre-generated known_hosts file into the container. The known_hosts file (usually stored in the user's `.ssh/` folder) contains the public keys of SSH servers. 
+For `scp` and `sftp` connections, Duplicity usually makes use of the Python Paramiko library. Unfortunately, Paramiko needs another format of the public keys than most SSH clients offer. But you can generate the necessary format by the following command:
+
+     ssh-keyscan -t rsa ftp.backup.host.example.com >> .ssh/known_hosts
+
+This stores the public key into `.ssh/known_hosts`, feel free to use another or an extra file to handle with backup issues. 
+
+At last, you have to make the known_hosts file accessible within the container:
+
+    docker run -it --rm --name dup \
+    -e "GPG_PASSPHRASE=USE_A_GOOD_PASSPHRASE_HERE" \
+    -e "BPROTO=ftp" \
+    -e "BUSER=backup_user" \
+    -e "BHOST=ftp.backup.host.example.com" \
+    -e "BPASSWORD=backup_host_password" \
+    -e "BDIRS=etc home" \
+    -e "BPREFIX=hostname_or_another_prefix" \
+    --volume /etc:/bak/etc \
+    --volume /home:/bak/home \
+    --volume /home/user_on_host/.ssh/known_hosts:/root/.ssh/known_hosts \
+    geschke/duplicity backup
+
+
+Have a look at the last volume line - the `known_hosts` file is mounted into the container. For sure, you have to change the value of the host's user (here `user_on_host`).  
 
 
 ## See also
